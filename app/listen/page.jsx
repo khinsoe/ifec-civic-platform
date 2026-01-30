@@ -29,38 +29,70 @@ export default function StudentListeningPage() {
     fetchLessons()
   }, [selectedLanguage, selectedGrade])
 
-  return (
-    <div className="min-h-screen bg-gray-50 p-6">
-      <div className="max-w-4xl mx-auto">
-        <header className="mb-8 text-center">
-          <h1 className="text-3xl font-bold text-blue-900">IFEC Civic Education</h1>
-          <p className="text-gray-600 mt-2">Multilingual Audio Learning Platform</p>
-        </header>
+  // Helper to make the UI colorful based on Grade
+  const getGradeColor = (grade) => {
+    const colors = {
+      '6': 'from-blue-500 to-cyan-400',
+      '7': 'from-emerald-500 to-teal-400',
+      '8': 'from-orange-500 to-amber-400',
+      '9': 'from-purple-500 to-indigo-400'
+    }
+    return colors[grade] || 'from-blue-500 to-blue-400'
+  }
 
-        {/* Filters */}
-        <div className="bg-white p-6 rounded-xl shadow-sm mb-8">
+  return (
+    <div className="min-h-screen bg-slate-50 font-sans">
+      
+      {/* 1. HERO SECTION: Welcoming Header */}
+      <div className={`relative bg-gradient-to-r ${getGradeColor(selectedGrade)} pb-32 pt-12 px-6 shadow-xl`}>
+        <div className="max-w-6xl mx-auto text-center text-white">
+          <h1 className="text-4xl md:text-5xl font-extrabold tracking-tight mb-2">
+            Civic Education Hub
+          </h1>
+          <p className="text-lg md:text-xl text-white/90 font-medium">
+            Learn about your rights and responsibilities.
+          </p>
+        </div>
+      </div>
+
+      <div className="max-w-6xl mx-auto px-4 -mt-24 relative z-10">
+        
+        {/* 2. CONTROL PANEL: Floating White Card */}
+        <div className="bg-white rounded-2xl shadow-lg p-6 mb-10 animate-fade-in-up">
+          
+          {/* Language Selector */}
           <div className="mb-6">
-            <h3 className="text-sm font-semibold text-gray-500 uppercase mb-3">Select Language</h3>
+            <h3 className="text-xs font-bold text-gray-400 uppercase tracking-wider mb-3">Choose Your Language</h3>
             <div className="flex flex-wrap gap-2">
               {languages.map((lang) => (
                 <button
                   key={lang}
                   onClick={() => setSelectedLanguage(lang)}
-                  className={`px-4 py-2 rounded-full text-sm font-medium transition-colors ${selectedLanguage === lang ? 'bg-blue-600 text-white shadow-md' : 'bg-gray-100 text-gray-600 hover:bg-gray-200'}`}
+                  className={`px-4 py-2 rounded-full text-sm font-bold transition-all transform hover:scale-105 ${
+                    selectedLanguage === lang
+                      ? `bg-gradient-to-r ${getGradeColor(selectedGrade)} text-white shadow-md ring-2 ring-offset-2 ring-blue-200`
+                      : 'bg-gray-100 text-gray-600 hover:bg-gray-200'
+                  }`}
                 >
                   {lang}
                 </button>
               ))}
             </div>
           </div>
+
+          {/* Grade Selector */}
           <div>
-            <h3 className="text-sm font-semibold text-gray-500 uppercase mb-3">Select Grade</h3>
-            <div className="flex gap-4 border-b border-gray-200">
+            <h3 className="text-xs font-bold text-gray-400 uppercase tracking-wider mb-3">Select Grade Level</h3>
+            <div className="flex gap-2 bg-gray-100 p-1 rounded-xl w-full md:w-fit">
               {['6', '7', '8', '9'].map((grade) => (
                 <button
                   key={grade}
                   onClick={() => setSelectedGrade(grade)}
-                  className={`pb-2 px-4 text-sm font-medium transition-colors border-b-2 ${selectedGrade === grade ? 'border-blue-600 text-blue-600' : 'border-transparent text-gray-500 hover:text-gray-700'}`}
+                  className={`flex-1 md:flex-none px-6 py-2 rounded-lg text-sm font-bold transition-all ${
+                    selectedGrade === grade
+                      ? 'bg-white text-gray-800 shadow-sm'
+                      : 'text-gray-400 hover:text-gray-600'
+                  }`}
                 >
                   Grade {grade}
                 </button>
@@ -69,53 +101,75 @@ export default function StudentListeningPage() {
           </div>
         </div>
 
-        {/* List */}
-        <div className="space-y-4">
+        {/* 3. LESSON GRID: Modern Cards instead of List */}
+        <div className="grid grid-cols-1 md:grid-cols-2 lg:grid-cols-3 gap-6 pb-20">
           {loading ? (
-            <p className="text-center text-gray-500 animate-pulse">Loading lessons...</p>
+             // Loading Skeletons
+            [1, 2, 3].map((i) => (
+              <div key={i} className="h-48 bg-gray-200 rounded-2xl animate-pulse"></div>
+            ))
           ) : lessons.length === 0 ? (
-            <div className="text-center p-10 bg-white rounded-lg border border-dashed border-gray-300">
-              <p className="text-gray-500">No lessons found for {selectedLanguage} (Grade {selectedGrade}).</p>
+            <div className="col-span-full text-center py-20 bg-white rounded-3xl border-2 border-dashed border-gray-200">
+              <div className="text-6xl mb-4">📚</div>
+              <h3 className="text-xl font-bold text-gray-600">No lessons yet!</h3>
+              <p className="text-gray-400">Check back later for {selectedLanguage} Grade {selectedGrade} content.</p>
             </div>
           ) : (
             lessons.map((lesson) => (
-              <div key={lesson.id} className="bg-white p-5 rounded-lg shadow-sm border border-gray-100 flex flex-col md:flex-row md:items-center gap-4 hover:shadow-md transition-shadow">
-                <div className="flex-1">
-                  <div className="flex items-center gap-2 mb-1">
-                    <span className="bg-blue-100 text-blue-800 text-xs font-semibold px-2.5 py-0.5 rounded">Grade {lesson.grade_level}</span>
-                    <span className="text-xs text-gray-400">{new Date(lesson.created_at).toLocaleDateString()}</span>
-                  </div>
-                  <h3 className="text-lg font-bold text-gray-800">{lesson.title}</h3>
+              <div 
+                key={lesson.id} 
+                className="group bg-white rounded-2xl p-5 shadow-sm hover:shadow-xl transition-all duration-300 border border-gray-100 hover:-translate-y-1"
+              >
+                {/* Card Header */}
+                <div className="flex justify-between items-start mb-4">
+                  <span className={`px-3 py-1 rounded-full text-xs font-bold text-white bg-gradient-to-r ${getGradeColor(lesson.grade_level.toString())}`}>
+                    Chapter {lesson.title.split(':')[0] || '1'}
+                  </span>
+                  <span className="text-xs text-gray-400 font-medium bg-gray-50 px-2 py-1 rounded-md">
+                    {new Date(lesson.created_at).toLocaleDateString()}
+                  </span>
                 </div>
 
-                <div className="flex items-center gap-3 w-full md:w-auto">
-                  <audio controls className="h-10 w-full md:w-48" preload="metadata">
+                {/* Title */}
+                <h3 className="text-lg font-bold text-gray-800 mb-2 leading-tight min-h-[3rem]">
+                  {lesson.title}
+                </h3>
+                
+                {/* Audio Player */}
+                <div className="bg-gray-50 rounded-xl p-2 mb-4">
+                  <audio controls className="w-full h-8" preload="metadata">
                     <source src={lesson.audio_url} type="audio/mpeg" />
                   </audio>
+                </div>
 
-                  {/* PDF BUTTON - Only shows if PDF exists */}
-                  {lesson.pdf_url && (
+                {/* Action Buttons */}
+                <div className="flex gap-2 mt-auto">
+                  {/* Download Button */}
+                  <a 
+                    href={lesson.audio_url} 
+                    download 
+                    target="_blank"
+                    className="flex-1 flex items-center justify-center gap-2 py-2.5 rounded-xl bg-blue-50 text-blue-600 font-bold text-sm hover:bg-blue-100 transition-colors"
+                  >
+                    <svg className="w-4 h-4" fill="none" stroke="currentColor" viewBox="0 0 24 24"><path strokeLinecap="round" strokeLinejoin="round" strokeWidth="2" d="M4 16v1a3 3 0 003 3h10a3 3 0 003-3v-1m-4-4l-4 4m0 0l-4-4m4 4V4"></path></svg>
+                    MP3
+                  </a>
+
+                  {/* Read Script Button (Only if PDF exists) */}
+                  {lesson.pdf_url ? (
                     <a 
                       href={lesson.pdf_url} 
                       target="_blank"
-                      rel="noopener noreferrer"
-                      className="flex items-center gap-2 px-3 py-2 bg-red-50 text-red-700 rounded-lg hover:bg-red-100 transition-colors text-sm font-medium border border-red-200"
-                      title="Read Script"
+                      className="flex-1 flex items-center justify-center gap-2 py-2.5 rounded-xl bg-red-50 text-red-600 font-bold text-sm hover:bg-red-100 transition-colors"
                     >
-                      <svg xmlns="http://www.w3.org/2000/svg" fill="none" viewBox="0 0 24 24" strokeWidth={1.5} stroke="currentColor" className="w-4 h-4">
-                        <path strokeLinecap="round" strokeLinejoin="round" d="M19.5 14.25v-2.625a3.375 3.375 0 00-3.375-3.375h-1.5A1.125 1.125 0 0113.5 7.125v-1.5a3.375 3.375 0 00-3.375-3.375H8.25m2.25 0H5.625c-.621 0-1.125.504-1.125 1.125v17.25c0 .621.504 1.125 1.125 1.125h12.75c.621 0 1.125-.504 1.125-1.125V11.25a9 9 0 00-9-9z" />
-                      </svg>
-                      Read Script
+                      <svg className="w-4 h-4" fill="none" stroke="currentColor" viewBox="0 0 24 24"><path strokeLinecap="round" strokeLinejoin="round" strokeWidth="2" d="M9 12h6m-6 4h6m2 5H7a2 2 0 01-2-2V5a2 2 0 012-2h5.586a1 1 0 01.707.293l5.414 5.414a1 1 0 01.293.707V19a2 2 0 01-2 2z"></path></svg>
+                      Read
                     </a>
+                  ) : (
+                    <div className="flex-1"></div> // Spacer to keep buttons aligned
                   )}
-                  
-                  {/* Download Audio Button */}
-                  <a href={lesson.audio_url} download target="_blank" rel="noopener noreferrer" className="p-2 bg-gray-100 text-gray-600 rounded-full hover:bg-blue-100 hover:text-blue-600 transition-colors">
-                    <svg xmlns="http://www.w3.org/2000/svg" fill="none" viewBox="0 0 24 24" strokeWidth={1.5} stroke="currentColor" className="w-5 h-5">
-                      <path strokeLinecap="round" strokeLinejoin="round" d="M3 16.5v2.25A2.25 2.25 0 005.25 21h13.5A2.25 2.25 0 0021 18.75V16.5M12 12.75l-3-3m0 0l-3 3m3-3v7.5M21 12a9 9 0 11-18 0 9 9 0 0118 0z" />
-                    </svg>
-                  </a>
                 </div>
+
               </div>
             ))
           )}
