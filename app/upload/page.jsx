@@ -30,21 +30,20 @@ export default function UploadPage() {
     setUploading(true)
 
     try {
-      // 1. Upload Audio (With UPSERT: TRUE to allow overwriting)
+      // 1. Upload Audio (Force Overwrite)
       const audioExt = audioFile.name.split('.').pop()
       const audioName = `${formData.language}/${formData.grade}_${formData.title.replace(/\s+/g, '_')}_AUDIO.${audioExt}`
-      // Note: I removed Date.now() to keep filenames cleaner, since we now allow overwriting.
       
       const { error: audioError } = await supabase.storage
         .from('civic_podcasts')
-        .upload(audioName, audioFile, { upsert: true }) // <--- THE FIX
+        .upload(audioName, audioFile, { upsert: true }) // <--- FIX HERE
       if (audioError) throw audioError
 
       const { data: { publicUrl: audioUrl } } = supabase.storage
         .from('civic_podcasts')
         .getPublicUrl(audioName)
 
-      // 2. Upload PDF (With UPSERT: TRUE)
+      // 2. Upload PDF (Force Overwrite)
       let pdfUrl = null
       if (pdfFile) {
         const pdfExt = pdfFile.name.split('.').pop()
@@ -52,7 +51,7 @@ export default function UploadPage() {
         
         const { error: pdfError } = await supabase.storage
           .from('civic_podcasts')
-          .upload(pdfName, pdfFile, { upsert: true }) // <--- THE FIX
+          .upload(pdfName, pdfFile, { upsert: true }) // <--- FIX HERE
         if (pdfError) throw pdfError
 
         const { data: { publicUrl } } = supabase.storage
