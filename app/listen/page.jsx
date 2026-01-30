@@ -1,7 +1,7 @@
 // app/listen/page.jsx
 'use client'
 import { useState, useEffect } from 'react'
-import { supabase } from '../../utils/supabase' // Adjust path if needed
+import { supabase } from '../../utils/supabase'
 
 export default function StudentListeningPage() {
   const [lessons, setLessons] = useState([])
@@ -13,7 +13,6 @@ export default function StudentListeningPage() {
 
   const languages = ['Myanmar', 'Kachin', 'Karenni', 'Karen', 'Chin', 'Mon', 'Rakhine', 'Shan']
 
-  // 1. Fetch Data whenever filters change
   useEffect(() => {
     async function fetchLessons() {
       setLoading(true)
@@ -21,10 +20,10 @@ export default function StudentListeningPage() {
       const { data, error } = await supabase
         .from('lessons')
         .select('*')
-        .eq('is_published', true) // Only show published
+        .eq('is_published', true)
         .eq('language', selectedLanguage)
         .eq('grade_level', parseInt(selectedGrade))
-        .order('created_at', { ascending: false }) // Newest first
+        .order('created_at', { ascending: false })
 
       if (error) {
         console.error('Error fetching lessons:', error)
@@ -35,7 +34,7 @@ export default function StudentListeningPage() {
     }
 
     fetchLessons()
-  }, [selectedLanguage, selectedGrade]) // Re-run when these change
+  }, [selectedLanguage, selectedGrade])
 
   return (
     <div className="min-h-screen bg-gray-50 p-6">
@@ -49,8 +48,6 @@ export default function StudentListeningPage() {
 
         {/* Filter Section */}
         <div className="bg-white p-6 rounded-xl shadow-sm mb-8">
-          
-          {/* Language Tabs */}
           <div className="mb-6">
             <h3 className="text-sm font-semibold text-gray-500 uppercase mb-3">Select Language</h3>
             <div className="flex flex-wrap gap-2">
@@ -70,7 +67,6 @@ export default function StudentListeningPage() {
             </div>
           </div>
 
-          {/* Grade Tabs */}
           <div>
             <h3 className="text-sm font-semibold text-gray-500 uppercase mb-3">Select Grade</h3>
             <div className="flex gap-4 border-b border-gray-200">
@@ -114,21 +110,33 @@ export default function StudentListeningPage() {
                     </span>
                   </div>
                   <h3 className="text-lg font-bold text-gray-800">{lesson.title}</h3>
-                  {lesson.description && (
-                    <p className="text-sm text-gray-600 mt-1">{lesson.description}</p>
-                  )}
                 </div>
 
-                {/* Audio Player */}
-                <div className="w-full md:w-1/3">
+                {/* Audio Player & Download */}
+                <div className="w-full md:w-auto flex items-center gap-3">
                   <audio 
                     controls 
-                    className="w-full h-10"
-                    preload="metadata" // Saves bandwidth
+                    className="h-10 w-full md:w-64"
+                    preload="metadata"
                   >
                     <source src={lesson.audio_url} type="audio/mpeg" />
-                    Your browser does not support the audio element.
+                    Your browser does not support audio.
                   </audio>
+
+                  {/* DOWNLOAD BUTTON */}
+                  <a 
+                    href={lesson.audio_url} 
+                    download 
+                    target="_blank"
+                    rel="noopener noreferrer"
+                    className="flex items-center justify-center w-10 h-10 bg-gray-100 text-gray-600 rounded-full hover:bg-blue-100 hover:text-blue-600 transition-colors"
+                    title="Download Lesson"
+                  >
+                    {/* Download Icon */}
+                    <svg xmlns="http://www.w3.org/2000/svg" fill="none" viewBox="0 0 24 24" strokeWidth={1.5} stroke="currentColor" className="w-5 h-5">
+                      <path strokeLinecap="round" strokeLinejoin="round" d="M3 16.5v2.25A2.25 2.25 0 005.25 21h13.5A2.25 2.25 0 0021 18.75V16.5M12 12.75l-3-3m0 0l-3 3m3-3v7.5M21 12a9 9 0 11-18 0 9 9 0 0118 0z" />
+                    </svg>
+                  </a>
                 </div>
 
               </div>
