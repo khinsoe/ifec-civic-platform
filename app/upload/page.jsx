@@ -12,7 +12,7 @@ export default function UploadPage() {
     accessCode: ''
   })
   const [audioFile, setAudioFile] = useState(null)
-  const [pdfFile, setPdfFile] = useState(null) // New State for PDF
+  const [pdfFile, setPdfFile] = useState(null)
 
   const languages = ['Myanmar', 'Kachin', 'Karenni', 'Karen', 'Chin', 'Mon', 'Rakhine', 'Shan']
   const SECRET_CODE = 'IFEC2026' 
@@ -30,28 +30,29 @@ export default function UploadPage() {
     setUploading(true)
 
     try {
-      // 1. Upload Audio
+      // 1. Upload Audio (With UPSERT: TRUE to allow overwriting)
       const audioExt = audioFile.name.split('.').pop()
-      const audioName = `${formData.language}/${formData.grade}_${formData.title.replace(/\s+/g, '_')}_AUDIO_${Date.now()}.${audioExt}`
+      const audioName = `${formData.language}/${formData.grade}_${formData.title.replace(/\s+/g, '_')}_AUDIO.${audioExt}`
+      // Note: I removed Date.now() to keep filenames cleaner, since we now allow overwriting.
       
       const { error: audioError } = await supabase.storage
         .from('civic_podcasts')
-        .upload(audioName, audioFile)
+        .upload(audioName, audioFile, { upsert: true }) // <--- THE FIX
       if (audioError) throw audioError
 
       const { data: { publicUrl: audioUrl } } = supabase.storage
         .from('civic_podcasts')
         .getPublicUrl(audioName)
 
-      // 2. Upload PDF (If selected)
+      // 2. Upload PDF (With UPSERT: TRUE)
       let pdfUrl = null
       if (pdfFile) {
         const pdfExt = pdfFile.name.split('.').pop()
-        const pdfName = `${formData.language}/${formData.grade}_${formData.title.replace(/\s+/g, '_')}_PDF_${Date.now()}.${pdfExt}`
+        const pdfName = `${formData.language}/${formData.grade}_${formData.title.replace(/\s+/g, '_')}_PDF.${pdfExt}`
         
         const { error: pdfError } = await supabase.storage
           .from('civic_podcasts')
-          .upload(pdfName, pdfFile)
+          .upload(pdfName, pdfFile, { upsert: true }) // <--- THE FIX
         if (pdfError) throw pdfError
 
         const { data: { publicUrl } } = supabase.storage
@@ -70,7 +71,7 @@ export default function UploadPage() {
             grade_level: parseInt(formData.grade),
             language: formData.language,
             audio_url: audioUrl,
-            pdf_url: pdfUrl, // Saving the new PDF link
+            pdf_url: pdfUrl,
             is_published: true
           }
         ])
@@ -147,7 +148,6 @@ export default function UploadPage() {
           </div>
         </div>
 
-        {/* Audio Input */}
         <div>
           <label className="block text-sm font-medium text-gray-700">Audio File (MP3) <span className="text-red-500">*</span></label>
           <input
@@ -159,7 +159,6 @@ export default function UploadPage() {
           />
         </div>
 
-        {/* PDF Input (Optional) */}
         <div>
           <label className="block text-sm font-medium text-gray-700">Script / Worksheet (PDF) <span className="text-gray-400 font-normal">(Optional)</span></label>
           <input
