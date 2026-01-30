@@ -9,42 +9,59 @@ export default function UploadPage() {
     title: '',
     grade: '6',
     language: 'Myanmar',
-    accessCode: '' // New Field for Security
+    accessCode: ''
   })
-  const [file, setFile] = useState(null)
+  const [audioFile, setAudioFile] = useState(null)
+  const [pdfFile, setPdfFile] = useState(null) // New State for PDF
 
   const languages = ['Myanmar', 'Kachin', 'Karenni', 'Karen', 'Chin', 'Mon', 'Rakhine', 'Shan']
-  const SECRET_CODE = 'IFEC2026' // <--- CHANGE THIS IF YOU WANT A DIFFERENT PASSWORD
+  const SECRET_CODE = 'IFEC2026' 
 
   const handleUpload = async (e) => {
     e.preventDefault()
 
-    // 1. Security Check
     if (formData.accessCode !== SECRET_CODE) {
       alert('❌ Access Denied: Incorrect Admin Code.')
       return
     }
 
-    if (!file) return alert('Please select an MP3 file.')
+    if (!audioFile) return alert('Please select an MP3 file.')
 
     setUploading(true)
 
     try {
-      const fileExt = file.name.split('.').pop()
-      const fileName = `${formData.language}/${formData.grade}_${formData.title.replace(/\s+/g, '_')}_${Date.now()}.${fileExt}`
+      // 1. Upload Audio
+      const audioExt = audioFile.name.split('.').pop()
+      const audioName = `${formData.language}/${formData.grade}_${formData.title.replace(/\s+/g, '_')}_AUDIO_${Date.now()}.${audioExt}`
       
-      const { data: fileData, error: storageError } = await supabase
-        .storage
+      const { error: audioError } = await supabase.storage
         .from('civic_podcasts')
-        .upload(fileName, file)
+        .upload(audioName, audioFile)
+      if (audioError) throw audioError
 
-      if (storageError) throw storageError
-
-      const { data: { publicUrl } } = supabase
-        .storage
+      const { data: { publicUrl: audioUrl } } = supabase.storage
         .from('civic_podcasts')
-        .getPublicUrl(fileName)
+        .getPublicUrl(audioName)
 
+      // 2. Upload PDF (If selected)
+      let pdfUrl = null
+      if (pdfFile) {
+        const pdfExt = pdfFile.name.split('.').pop()
+        const pdfName = `${formData.language}/${formData.grade}_${formData.title.replace(/\s+/g, '_')}_PDF_${Date.now()}.${pdfExt}`
+        
+        const { error: pdfError } = await supabase.storage
+          .from('civic_podcasts')
+          .upload(pdfName, pdfFile)
+        if (pdfError) throw pdfError
+
+        const { data: { publicUrl } } = supabase.storage
+          .from('civic_podcasts')
+          .getPublicUrl(pdfName)
+        
+        pdfUrl = publicUrl
+      }
+
+      // 3. Save to Database
       const { error: dbError } = await supabase
         .from('lessons')
         .insert([
@@ -52,7 +69,8 @@ export default function UploadPage() {
             title: formData.title,
             grade_level: parseInt(formData.grade),
             language: formData.language,
-            audio_url: publicUrl,
+            audio_url: audioUrl,
+            pdf_url: pdfUrl, // Saving the new PDF link
             is_published: true
           }
         ])
@@ -60,9 +78,9 @@ export default function UploadPage() {
       if (dbError) throw dbError
 
       alert('✅ Upload successful!')
-      // Reset form but keep the access code so they can upload more
       setFormData(prev => ({ ...prev, title: '', grade: '6' }))
-      setFile(null)
+      setAudioFile(null)
+      setPdfFile(null)
 
     } catch (error) {
       console.error('Error uploading:', error)
@@ -78,13 +96,12 @@ export default function UploadPage() {
       
       <form onSubmit={handleUpload} className="space-y-5">
         
-        {/* Security Field */}
         <div className="bg-yellow-50 p-4 rounded-md border border-yellow-200">
           <label className="block text-sm font-bold text-yellow-800">Admin Access Code</label>
           <input
             type="password"
             required
-            className="mt-1 block w-full p-2 border border-yellow-300 rounded-md focus:ring-yellow-500 focus:border-yellow-500"
+            className="mt-1 block w-full p-2 border border-yellow-300 rounded-md"
             placeholder="Enter IFEC Code"
             value={formData.accessCode}
             onChange={(e) => setFormData({...formData, accessCode: e.target.value})}
@@ -130,14 +147,26 @@ export default function UploadPage() {
           </div>
         </div>
 
+        {/* Audio Input */}
         <div>
-          <label className="block text-sm font-medium text-gray-700">Audio File (MP3)</label>
+          <label className="block text-sm font-medium text-gray-700">Audio File (MP3) <span className="text-red-500">*</span></label>
           <input
             type="file"
             accept="audio/*"
             required
             className="mt-1 block w-full text-sm text-gray-500 file:mr-4 file:py-2 file:px-4 file:rounded-full file:border-0 file:text-sm file:font-semibold file:bg-blue-50 file:text-blue-700 hover:file:bg-blue-100"
-            onChange={(e) => setFile(e.target.files[0])}
+            onChange={(e) => setAudioFile(e.target.files[0])}
+          />
+        </div>
+
+        {/* PDF Input (Optional) */}
+        <div>
+          <label className="block text-sm font-medium text-gray-700">Script / Worksheet (PDF) <span className="text-gray-400 font-normal">(Optional)</span></label>
+          <input
+            type="file"
+            accept="application/pdf"
+            className="mt-1 block w-full text-sm text-gray-500 file:mr-4 file:py-2 file:px-4 file:rounded-full file:border-0 file:text-sm file:font-semibold file:bg-red-50 file:text-red-700 hover:file:bg-red-100"
+            onChange={(e) => setPdfFile(e.target.files[0])}
           />
         </div>
 
@@ -146,7 +175,7 @@ export default function UploadPage() {
           disabled={uploading}
           className={`w-full py-3 px-4 border border-transparent rounded-md shadow-sm text-sm font-bold text-white bg-blue-700 hover:bg-blue-800 focus:outline-none transition-all ${uploading ? 'opacity-50 cursor-not-allowed' : ''}`}
         >
-          {uploading ? 'Uploading...' : 'Secure Upload'}
+          {uploading ? 'Uploading Lesson & Files...' : 'Secure Upload'}
         </button>
       </form>
     </div>
