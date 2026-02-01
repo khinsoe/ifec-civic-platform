@@ -9,7 +9,7 @@ export default function StudentListeningPage() {
   const [selectedLanguage, setSelectedLanguage] = useState('Myanmar')
   const [selectedGrade, setSelectedGrade] = useState('6')
 
-  const languages = ['Myanmar', 'Kachin', 'Karenni', 'Karen', 'Chin', 'Mon', 'Rakhine', 'Shan']
+  const languages = ['Myanmar', 'Kachin', 'Karenni', 'Karen', 'Chin', 'Mon', 'Rakhine', 'Shan', 'Ta-ang']
 
   useEffect(() => {
     async function fetchLessons() {

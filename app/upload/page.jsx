@@ -14,7 +14,7 @@ export default function UploadPage() {
   const [audioFile, setAudioFile] = useState(null)
   const [pdfFile, setPdfFile] = useState(null)
 
-  const languages = ['Myanmar', 'Kachin', 'Karenni', 'Karen', 'Chin', 'Mon', 'Rakhine', 'Shan']
+  const languages = ['Myanmar', 'Kachin', 'Karenni', 'Karen', 'Chin', 'Mon', 'Rakhine', 'Shan', 'Ta-ang']
   const SECRET_CODE = 'IFEC2026' 
 
   const handleUpload = async (e) => {
