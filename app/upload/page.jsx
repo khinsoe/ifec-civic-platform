@@ -17,7 +17,7 @@ export default function UploadPage() {
   const [pdfFile, setPdfFile] = useState(null)
 
   // Expanded Language List
-  const languages = ['Myanmar', 'Kachin', 'Karenni', 'Karen', 'Chin', 'Mon', 'Rakhine', 'Shan', 'Jinghpaw']
+  const languages = ['Myanmar', 'Kachin', 'Karenni', 'Karen', 'Chin', 'Mon', 'Rakhine', 'Shan', 'Ta-ang']
   const SECRET_CODE = 'IFEC2026'
 
   // 1. Fetch existing lessons when the page loads (or when Access Code is entered)
